@@ -60,11 +60,12 @@ public class StartWizard extends javax.swing.JFrame {
     private Cipher desCipher;
     private SecretKey secretKey;
     private byte[] key = "estaesla1.5veyronclaveesperofuncione".getBytes();
-    private static char[] password = {'a', 'd', 'm', 'i', 'n'};
+    private static char[] defaultPassword = {'a', 'd', 'm', 'i', 'n'};
     private PasswordBox pb;
     static String databaseDate;
     static ArrayList<TextValuesComp> adminValues;
     private static MyFileFilter filter;
+    //private static String files[];
 
     /** Creates new form StartWizard */
     public StartWizard() {
@@ -90,9 +91,15 @@ public class StartWizard extends javax.swing.JFrame {
         filter = new MyFileFilter();
         chooser.setFileFilter(filter);
         setLocationRelativeTo(null);
+        /*Incomplete
+        if(files.length > 0){
+            JOptionPane.showMessageDialog(null, "you tried to open from windows");
+            openFromWindows();
+        }
+         */
     }
-    
-    public static MyFileFilter getFilter(){
+
+    public static MyFileFilter getFilter() {
         return filter;
     }
 
@@ -129,11 +136,11 @@ public class StartWizard extends javax.swing.JFrame {
     }
 
     public static char[] getPassword() {
-        return password;
+        return defaultPassword;
     }
 
     public static void setPassword(char[] password) {
-        StartWizard.password = password;
+        StartWizard.defaultPassword = password;
     }
 
     public static String getFilename() {
@@ -154,7 +161,7 @@ public class StartWizard extends javax.swing.JFrame {
                 BufferedInputStream bis = new BufferedInputStream(fis);
                 CipherInputStream cis = new CipherInputStream(bis, desCipher);
                 ois = new ObjectInputStream(cis);
-                password = (char[]) ois.readObject();
+                defaultPassword = (char[]) ois.readObject();
                 ois.close();
             } catch (NoSuchPaddingException ex) {
                 Logger.getLogger(StartWizard.class.getName()).log(Level.SEVERE, null, ex);
@@ -200,7 +207,7 @@ public class StartWizard extends javax.swing.JFrame {
                     CipherOutputStream cos = new CipherOutputStream(bos, desCipher);
                     oos = new ObjectOutputStream(cos);
                     // Write objects
-                    oos.writeObject(password);
+                    oos.writeObject(defaultPassword);
                     oos.flush();
                     oos.close();
                 } catch (IOException ex) {
@@ -329,19 +336,20 @@ public class StartWizard extends javax.swing.JFrame {
             filename = selectedFile.getAbsolutePath();
             try {
                 in = new ObjectInputStream(new FileInputStream(filename));
-                ArrayList<ArrayList<TextValuesComp>> siteInfo = (ArrayList<ArrayList<TextValuesComp>>) in.readObject();
+                ArrayList<ArrayList<TextValuesComp>> temp = (ArrayList<ArrayList<TextValuesComp>>) in.readObject();
                 String name = (String) in.readObject();
-                String dateCreated = (String) in.readObject();
-                String dateModified = (String) in.readObject();
-                int difficulty = (Integer) in.readObject();
-                String location = (String) in.readObject();
-                String comments = (String) in.readObject();
-                ArrayList<SiteMaterial> siteMaterials = (ArrayList<SiteMaterial>) in.readObject();
-                ArrayList<Poste> posts = (ArrayList<Poste>) in.readObject();
+                String datec = (String) in.readObject();
+                String datem = (String) in.readObject();
+                int diff = (Integer) in.readObject();
+                String loc = (String) in.readObject();
+                String com = (String) in.readObject();
+                ArrayList<SiteMaterial> sm = (ArrayList<SiteMaterial>) in.readObject();
+                ArrayList<Poste> p = (ArrayList<Poste>) in.readObject();
                 ArrayList<PatronLine> pat = (ArrayList<PatronLine>) in.readObject();
+                PatronLine[] patlin = (PatronLine[]) in.readObject();
                 in.close();
                 this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                sa = new SiteAdmin(siteInfo, name, dateCreated, dateModified, difficulty, location, comments, siteMaterials, posts, pat);
+                sa = new SiteAdmin(temp, name, datec, datem, diff, loc, com, sm, p, pat, patlin);
                 sa.setVisible(true);
                 this.setCursor(Cursor.getDefaultCursor());
             } catch (IOException ex) {
@@ -351,6 +359,35 @@ public class StartWizard extends javax.swing.JFrame {
             }
         }
     }
+
+    /*
+    private void openFromWindows() {
+        ObjectInputStream in;
+        try {
+            in = new ObjectInputStream(new FileInputStream(files[0]));
+            ArrayList<ArrayList<TextValuesComp>> temp = (ArrayList<ArrayList<TextValuesComp>>) in.readObject();
+            String name = (String) in.readObject();
+            String datec = (String) in.readObject();
+            String datem = (String) in.readObject();
+            int diff = (Integer) in.readObject();
+            String loc = (String) in.readObject();
+            String com = (String) in.readObject();
+            ArrayList<SiteMaterial> sm = (ArrayList<SiteMaterial>) in.readObject();
+            ArrayList<Poste> p = (ArrayList<Poste>) in.readObject();
+            ArrayList<PatronLine> pat = (ArrayList<PatronLine>) in.readObject();
+            PatronLine[] patlin = (PatronLine[]) in.readObject();
+            in.close();
+            this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            sa = new SiteAdmin(temp, name, datec, datem, diff, loc, com, sm, p, pat, patlin);
+            sa.setVisible(true);
+            this.setCursor(Cursor.getDefaultCursor());
+        } catch (IOException ex) {
+            Logger.getLogger(StartWizard.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(StartWizard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+     */
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -614,6 +651,7 @@ private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+        //files = args;
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             public void run() {

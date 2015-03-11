@@ -15,7 +15,7 @@ import javax.swing.table.AbstractTableModel;
  */
 public class MaterialesEnPosteModel extends AbstractTableModel{
 
-    private ArrayList<PatronLine> datalist;
+    private ArrayList<PatronLine> datalist = new ArrayList<PatronLine>();
     private String[] columns={"Código", "Descripción", "Cantidad", "Precio ($)"};
     
 
@@ -35,7 +35,9 @@ public class MaterialesEnPosteModel extends AbstractTableModel{
     }
 
     public MaterialesEnPosteModel(ArrayList<PatronLine> l) {
-        datalist = l;
+        for(PatronLine pl : l)
+            if(pl.getQuantity() != 0)
+                datalist.add(pl);
     } 
 
     public Object getValueAt(int row, int col) {

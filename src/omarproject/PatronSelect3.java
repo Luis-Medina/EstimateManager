@@ -35,22 +35,23 @@ import segundaFase.SiteMaterial;
  */
 public class PatronSelect3 extends javax.swing.JFrame {
 
-    private static MyList<PatronLine> patronLineasSelected = new MyList<PatronLine>();
-    private static ArrayList<Patron> patronesSelected = new ArrayList<Patron>();
+    static ArrayList<Patron> patronesSelected = new ArrayList<Patron>();
+    static Component[] componentes;
+    static ArrayList<PatronLine> patronLineasSelected = new ArrayList<PatronLine>();
+    static PatronLine[] patronLineasBase = new PatronLine[StartWizard.articulos.size()];
+    private int alto;
     private String clase;
     private Poste elPoste;
     private boolean newOne;
     private int posteIndex;
+    private ArrayList<Patron> patronesOriginales;
     private Vector heights = new Vector();
     private Vector classes = new Vector();
     private Vector<String> patronNames = new Vector<String>();
     private String tempAlto = "";
     private String tempClase = "";
     private JPopupMenu popup;
-    private ArrayList<Patron> patronesOriginales = new ArrayList<Patron>();
-    private double oldPostePrice;
-    private double oldPosteTotalPrice;
-    private double grandTotal;
+    private ArrayList<Integer> selectedIndexes = new ArrayList<Integer>();
 
     public PatronSelect3() {
         initComponents();
@@ -64,6 +65,7 @@ public class PatronSelect3 extends javax.swing.JFrame {
         initializePopups();
         elPoste = p;
         posteIndex = index;
+        componentes = jPanel1.getComponents();
         if (p.getPatrones().size() != 0) {
             for (Patron patron : p.getPatrones()) {
                 for (String name : patronNames) {
@@ -73,26 +75,29 @@ public class PatronSelect3 extends javax.swing.JFrame {
                 }
             }
         }
+        for (int i = 0; i < patronLineasBase.length; i++) {
+            Articulo a = StartWizard.articulos.get(i);
+            patronLineasBase[i] = new PatronLine(a, 0);
+        }
         newOne = tOrF;
         if (!newOne) {
             restoreOld();
         }
     }
-
-    public String getPosteName() {
+    
+    public String getPosteName(){
         return elPoste.getName();
     }
 
     private void restoreOld() {
-        patronesOriginales = (ArrayList<Patron>) elPoste.getPatrones().clone();
+        patronesSelected = elPoste.getPatrones();
+        patronesOriginales = (ArrayList<Patron>) patronesSelected.clone();
         jTextField2.setText(elPoste.getName());
-        oldPostePrice = elPoste.getPrice();
-        oldPosteTotalPrice = elPoste.getTotalPrice();
-        Number numberValue = (Number) oldPosteTotalPrice;
+        Number numberValue = (Number) elPoste.getTotalPrice();
         NumberFormat formatter = NumberFormat.getCurrencyInstance();
         String value = formatter.format(numberValue.doubleValue());
         jFormattedTextField2.setText(value);
-        numberValue = (Number) oldPostePrice;
+        numberValue = elPoste.getPrice();
         value = formatter.format(numberValue.doubleValue());
         jFormattedTextField1.setText(value);
         jComboBox1.setSelectedItem(elPoste.getHeight());
@@ -177,7 +182,10 @@ public class PatronSelect3 extends javax.swing.JFrame {
     }
 
     private void createMaterialesEnPosteTable() {
-        getCheckedPatrones();
+        patronLineasSelected.clear();
+        for (PatronLine pl : patronLineasBase) {
+            patronLineasSelected.add(pl);
+        }
         MaterialesEnPosteModel mepm = new MaterialesEnPosteModel(patronLineasSelected);
         jTable2.setModel(mepm);
         jTable2.getColumnModel().getColumn(1).setPreferredWidth(200);
@@ -199,62 +207,82 @@ public class PatronSelect3 extends javax.swing.JFrame {
         return false;
     }
 
-    private MyList<PatronLine> getCheckedPatrones() {
-        MyList<PatronLine> tempLineasSelected = new MyList<PatronLine>();
-        for (int i : jList1.getSelectedIndices()) {
-            String patronName = patronNames.get(i);
-            Patron p = Finders.findPatron(patronName);
-            ArrayList<PatronLine> temp = p.getLines();
-            for (PatronLine pl : temp) {
-                tempLineasSelected.addPatronLine(pl);
-            }
-        }
-        return tempLineasSelected;
-    }
-
-    private void setCheckedPatrones() {
+    private void addCheckedToList() {
         patronesSelected.clear();
-        patronLineasSelected = new MyList<PatronLine>();
-        //if(!newOne)
-        //    elPoste.removeAllPatrones();
+        clearpatronLineasBase();
+        elPoste.removeAllPatrones();
         for (int i : jList1.getSelectedIndices()) {
             String patronName = patronNames.get(i);
             Patron p = Finders.findPatron(patronName);
             patronesSelected.add(p);
+            elPoste.addPatron(p);
             ArrayList<PatronLine> temp = p.getLines();
             for (PatronLine pl : temp) {
-                patronLineasSelected.addPatronLine(pl);
+                addQuantityOnly(pl);
+            }
+        }
+    }
+
+    private void addQuantityOnly(PatronLine patlin) {
+        for (PatronLine pl : patronLineasBase) {
+            if (pl.getArticle().getNumber() == patlin.getArticle().getNumber()) {
+                pl.addToQuantity(patlin.getQuantity());
             }
         }
     }
 
     private void updatePrice() {
         double tempPrice = 0;
-        for (int i : jList1.getSelectedIndices()) {
-            String patronName = patronNames.get(i);
-            Patron p = Finders.findPatron(patronName);
+        for (Patron p : patronesSelected) {
             tempPrice += p.getPrice();
         }
-        jTextField3.setText(Utils.returnDollarValue(tempPrice));
-        grandTotal = elPoste.getPrice() + tempPrice;
-        jFormattedTextField2.setText(Utils.returnDollarValue(grandTotal));
-        //elPoste.setTotalPrice(grandTotal);
+        Number numberValue = (Number) tempPrice;
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        String value = formatter.format(numberValue.doubleValue());
+        jTextField3.setText(value);
+    }
+
+    private void updateGeneralInfoPrice() {
+        Number numberValue = (Number) elPoste.getTotalPrice();
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        String value = formatter.format(numberValue.doubleValue());
+        jFormattedTextField2.setText(value);
+    }
+
+    private void clearpatronLineasBase() {
+        for (PatronLine pl : patronLineasBase) {
+            pl.setQuantity(0);
+        }
     }
 
     private void updateMateriales() {
-        for (PatronLine pl : patronLineasSelected) {
-            SiteAdmin.getMyList().add(pl);
-        }
-        SiteAdmin.getArticuloTableModel().fireTableDataChanged();
-    }
-
-    private void removeOldArticulos() {
-        for (Patron patron : patronesOriginales) {
-            for (PatronLine pl : patron.getLines()) {
-                SiteAdmin.getMyList().removePatronLine(pl);
+        ArrayList<PatronLine> lineasViejas = new ArrayList<PatronLine>();
+        ArrayList<PatronLine> lineasNuevas = new ArrayList<PatronLine>();
+        for (Patron p : patronesOriginales) {
+            for (PatronLine pl : p.getLines()) {
+                lineasViejas.add(pl);
             }
         }
-       SiteAdmin.getArticuloTableModel().fireTableDataChanged();
+        for (PatronLine pali : lineasViejas) {
+            for (PatronLine patlin : SiteAdmin.getConteo()) {
+                if (patlin.getArticle().getNumber() == pali.getArticle().getNumber()) {
+                    patlin.subtractFromQuantity(pali.getQuantity());
+                }
+            }
+        }
+        for (Patron p : patronesSelected) {
+            for (PatronLine pl : p.getLines()) {
+                lineasNuevas.add(pl);
+            }
+        }
+        for (PatronLine pali : lineasNuevas) {
+            for (PatronLine patlin : SiteAdmin.getConteo()) {
+                if (patlin.getArticle().getNumber() == pali.getArticle().getNumber()) {
+                    patlin.addToQuantity(pali.getQuantity());
+                }
+            }
+        }
+        SiteAdmin.getArticuloTableModel().doRefresh();
     }
 
     private int doAddAction() {
@@ -262,18 +290,31 @@ public class PatronSelect3 extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "El poste ya existe");
             return 0;
         } else {
+            SiteAdmin.getPosteTableModel().addPoste(elPoste);
             SiteAdmin.getPostes().add(elPoste);
-            SiteAdmin.getPosteTableModel().fireTableDataChanged();
-            updateMateriales();
-            if (elPoste.getClase().equals("H-6") || elPoste.getClase().equals("H-8")) {
-                for (SiteMaterial sm : SiteAdmin.getMaterialesSite()) {
-                    if (sm.getName().equalsIgnoreCase("Base de poste")) {
+            for (Patron nuevo : patronesSelected) {
+                addToArticuloCount(nuevo);
+            }
+            SiteAdmin.getArticuloTableModel().doRefresh();
+            if(elPoste.getClase().equals("H-6") || elPoste.getClase().equals("H-8")){
+                for(SiteMaterial sm : SiteAdmin.getMaterialesSite())
+                    if(sm.getName().equalsIgnoreCase("Base de poste")){
                         sm.setQuantity(sm.getQuantity() + 1);
-                        SiteAdmin.getSmm().fireTableDataChanged();
+                        SiteAdmin.updateSiteTotal();
                     }
-                }
             }
             return 1;
+        }
+    }
+
+    private void addToArticuloCount(Patron p) {
+        ArrayList<PatronLine> temp = p.getLines();
+        for (PatronLine patlin : temp) {
+            for (PatronLine pl : SiteAdmin.getConteo()) {
+                if (pl.getArticle().getNumber() == patlin.getArticle().getNumber()) {
+                    pl.addToQuantity(patlin.getQuantity());
+                }
+            }
         }
     }
 
@@ -679,7 +720,7 @@ public class PatronSelect3 extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        setCheckedPatrones();
+        addCheckedToList();
         if (jTextField2.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Por favor escribir un nombre para el poste.");
             jTabbedPane1.setSelectedIndex(0);
@@ -690,20 +731,17 @@ public class PatronSelect3 extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Por favor seleccionar una clase para el poste.");
             jTabbedPane1.setSelectedIndex(0);
         } else {
-            elPoste.setTotalPrice(grandTotal);
-            elPoste.setPatrones(patronesSelected);
             elPoste.setName(jTextField2.getText());
             if (newOne) {
                 if (doAddAction() == 1) {
                     JTable table = SiteAdmin.getTable2();
-                    table.scrollRectToVisible(table.getCellRect(table.getRowCount() - 1, table.getColumnCount(), true));
+                    table.scrollRectToVisible(table.getCellRect(table.getRowCount()-1, table.getColumnCount(), true));
                     this.setVisible(false);
                     this.dispose();
                 }
             } else {
                 SiteAdmin.getPostes().set(posteIndex, elPoste);
-                SiteAdmin.getPosteTableModel().fireTableDataChanged();
-                removeOldArticulos();
+                SiteAdmin.getPosteTableModel().setPoste(elPoste, posteIndex);
                 updateMateriales();
                 this.setVisible(false);
                 this.dispose();
@@ -726,14 +764,19 @@ public class PatronSelect3 extends javax.swing.JFrame {
         int i = jTabbedPane1.getSelectedIndex();
         if (i != 1 || i != 2) {
             try {
-                updatePrice();
+                addCheckedToList();
+                updateGeneralInfoPrice();
             } catch (Exception e) {
             }
         }
         if (jTabbedPane1.getSelectedIndex() == 3) {
+            addCheckedToList();
             createMaterialesEnPosteTable();
+            updatePrice();
+        }
+        if (i == 0) {
             try {
-                updatePrice();
+                updateGeneralInfoPrice();
             } catch (Exception e) {
             }
         }
@@ -759,9 +802,6 @@ private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
             }
         }
     }
-    if (!jFormattedTextField2.getText().equals("")) {
-        updatePrice();
-    }
 }//GEN-LAST:event_jComboBox1ActionPerformed
 
 private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
@@ -783,9 +823,6 @@ private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
             } catch (Exception e) {
             }
         }
-    }
-    if (!jFormattedTextField2.getText().equals("")) {
-        updatePrice();
     }
 }//GEN-LAST:event_jComboBox2ActionPerformed
 

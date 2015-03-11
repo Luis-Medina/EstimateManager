@@ -70,7 +70,7 @@ public class SiteMaterialModel extends AbstractTableModel {
                 pl.setQuantity((Integer) value);
                 total += pl.getTotalPrice();
                 fireTableDataChanged();
-                SiteAdmin.updateSiteTotal(total);
+                SiteAdmin.updateSiteTotal();
         }
     }
 
@@ -111,7 +111,13 @@ public class SiteMaterialModel extends AbstractTableModel {
                 return true;
         }
     }
-
+    
+    public double getTotal(){
+        total = 0;
+        for(SiteMaterial sm : datalist)
+            total += sm.getTotalPrice();
+        return total;
+    }
     
 }
 

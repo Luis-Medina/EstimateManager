@@ -31,12 +31,17 @@ import segundaFase.SiteAdmin;
  */
 public class ArticuloTableModel extends AbstractTableModel {
 
-    private MyList<PatronLine> datalist;
+    private MyList datalist = new MyList();
     private String[] columns = {"Código", "Descripción", "Cantidad", "Precio"};
     private double total = 0;
 
     public int getRowCount() {
+        try{
         return datalist.size();
+        }
+        catch(Exception e){
+            return 0;
+        }
     }
 
     public int getColumnCount() {
@@ -50,8 +55,13 @@ public class ArticuloTableModel extends AbstractTableModel {
     public ArticuloTableModel() {
     }
 
-    public ArticuloTableModel(MyList<PatronLine> pl) {
+    public ArticuloTableModel(MyList pl) {
         datalist = pl;
+        /*for (PatronLine patlin : pl) {
+            if (patlin.getQuantity() != 0) {
+                datalist.add(patlin);
+            }
+        }*/
     }
 
     public Object getValueAt(int row, int col) {
@@ -95,30 +105,24 @@ public class ArticuloTableModel extends AbstractTableModel {
         return false;
     }
 
+    public void doRefresh() {
+        datalist.clear();
+        total = 0;
+        for (PatronLine patlin : SiteAdmin.getConteo()) {
+            if (patlin.getQuantity() != 0) {
+                datalist.add(patlin);
+                total += patlin.getPrice();
+            }
+        }
+        fireTableDataChanged();
+        SiteAdmin.updateArticulosTotal();
+    }
+
     public double getTotal() {
+        total = 0;
+        for (PatronLine pl : datalist) {
+            total += pl.getPrice();
+        }
         return total;
-    }
-
-    public void addArticulo(PatronLine pl){
-        datalist.addPatronLine(pl);
-        fireTableDataChanged();
-    }
-
-    public void removeArticulos(Poste p){
-        for(Patron patron : p.getPatrones()){
-            for(PatronLine pl : patron.getLines()){
-                datalist.removePatronLine(pl);
-            }
-        }
-        fireTableDataChanged();
-    }
-
-    public void removeArticulos(ArrayList<Patron> list){
-        for(Patron patron : list){
-            for(PatronLine pl : patron.getLines()){
-                datalist.removePatronLine(pl);
-            }
-        }
-        fireTableDataChanged();
     }
 }

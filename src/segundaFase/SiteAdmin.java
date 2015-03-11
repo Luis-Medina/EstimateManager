@@ -46,8 +46,6 @@ import javax.swing.Timer;
 import javax.swing.ToolTipManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.TableRowSorter;
 import omarproject.*;
 
@@ -58,7 +56,9 @@ import omarproject.*;
 public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListener {
 
     private static ArrayList<SiteMaterial> materialesSite;
-    static MyList<PatronLine> conteoArticulosEnProy2;
+    static ArrayList<PatronLine> conteoArticulosEnProy;
+    static PatronLine[] patronLineasBase;
+    static MyList conteoArticulosEnProy2;
     static ArrayList<Poste> postes;
     static ManoDeObraPrimaria mdop;
     static ManoDeObraSecundaria mdos;
@@ -102,6 +102,8 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
         postes = new ArrayList<Poste>();
         siteInfo = new ArrayList<ArrayList<TextValuesComp>>();
         materialesSite = new ArrayList<SiteMaterial>();
+        conteoArticulosEnProy = new ArrayList<PatronLine>();
+        patronLineasBase = new PatronLine[StartWizard.getArticles().size()];
         jTabbedPane1.setMaximumSize(new Dimension(687, 548));
         jTabbedPane1.setSize(new Dimension(687, 548));
         jTabbedPane1.setPreferredSize(new Dimension(687, 548));
@@ -116,35 +118,37 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
         cl.maximumLayoutSize(jPanel3);
         cl.preferredLayoutSize(jPanel3);
         jLabel3.setVisible(false);
-        conteoArticulosEnProy2 = new MyList<PatronLine>();
+        for (Articulo a : StartWizard.getArticles()) {
+            conteoArticulosEnProy.add(new PatronLine(a, 0));
+        }
+        for (int i = 0; i < patronLineasBase.length; i++) {
+            Articulo a = StartWizard.getArticles().get(i);
+            patronLineasBase[i] = new PatronLine(a, 0);
+        }
+        conteoArticulosEnProy2 = new MyList();
         initializeArticuloTable();
         setDateCreated();
         currentIndex = 0;
         savedBefore = false;
         openPostes = new ArrayList<PatronSelect3>();
-        //setRadios();
+        setRadios();
     }
 
-    public SiteAdmin(ArrayList<ArrayList<TextValuesComp>> temp, String name, String datec, String datem, int diff, String loc, String com, ArrayList<SiteMaterial> sm, ArrayList<Poste> p, ArrayList<PatronLine> pat) {
+    public SiteAdmin(ArrayList<ArrayList<TextValuesComp>> temp, String name, String datec, String datem, int diff, String loc, String com, ArrayList<SiteMaterial> sm, ArrayList<Poste> p, ArrayList<PatronLine> pat, PatronLine[] patlin) {
         initComponents();
         materialesSite = new ArrayList<SiteMaterial>();
         for (Material m : StartWizard.getMaterials()) {
             materialesSite.add(new SiteMaterial(m.getName(), 0, m.getPrice()));
         }
-        for (SiteMaterial m : materialesSite) {
-            for (SiteMaterial mat : sm) {
-                if (m.getName().equalsIgnoreCase(mat.getName())) {
+        for(SiteMaterial m : materialesSite){
+            for(SiteMaterial mat : sm)
+                if(m.getName().equalsIgnoreCase(mat.getName())){
                     m.setQuantity(mat.getQuantity());
                 }
-            }
         }
         postes = p;
-        ArrayList<PatronLine> tempList = pat;
-        conteoArticulosEnProy2 = new MyList<PatronLine>();
-        for (PatronLine pl : tempList) {
-            conteoArticulosEnProy2.add(pl);
-        }
-        //conteoArticulosEnProy2 = (MyList<PatronLine>) pat;
+        conteoArticulosEnProy = pat;
+        patronLineasBase = patlin;
         jTabbedPane1.setMaximumSize(new Dimension(687, 548));
         jTabbedPane1.setSize(new Dimension(687, 548));
         jTabbedPane1.setPreferredSize(new Dimension(687, 548));
@@ -169,35 +173,41 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
         jTextArea1.setText(com);
         savedBefore = true;
         lastSavedFilename = StartWizard.getFilename();
-        //updateSiteTotal();
-        //articuloModel.doRefresh();
+        updatePosteTotal();
+        updateSiteTotal();
+        updateArticulosTotal();
         openPostes = new ArrayList<PatronSelect3>();
-        //setRadios();
+        conteoArticulosEnProy2 = new MyList();
+        setRadios();
     }
-
+    
     class ButtonListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
             if (e.getActionCommand().equals("Terrera")) {
+                
+                
             } else {
+                
+                
             }
         }
     }
 
-//    /*
-//     * Method to add listeners to each radio button.
-//     */
-//    private void setRadios() {
-//        ButtonListener listener = new ButtonListener();
-//        jRadioButton1.addActionListener(listener);
-//        jRadioButton2.addActionListener(listener);
-//    }
-
-    public static MyList<PatronLine> getMyList() {
+    /*
+     * Method to add listeners to each radio button.
+     */
+    private void setRadios() {
+        ButtonListener listener = new ButtonListener();
+        //jRadioButton1.addActionListener(listener);
+        //jRadioButton2.addActionListener(listener);
+    }
+    
+    public static MyList getMyList(){
         return conteoArticulosEnProy2;
     }
-
-    public static JTable getTable2() {
+    
+    public static JTable getTable2(){
         return jTable2;
     }
 
@@ -262,16 +272,17 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
                 }
             }
         }
-        //ptm.doRefresh();
+        ptm.fireTableDataChanged();
+        updatePosteTotal();
     }
 
     public void updateMaterialesEnPosteTable() {
-        for (int i = 0; i < conteoArticulosEnProy2.size(); i++) {
+        for (int i = 0; i < conteoArticulosEnProy.size(); i++) {
             for (Articulo a : StartWizard.getArticles()) {
-                Articulo aa = conteoArticulosEnProy2.get(i).getArticle();
+                Articulo aa = conteoArticulosEnProy.get(i).getArticle();
                 if (aa.getDescription().equals(a.getDescription())) {
                     aa.setPrice(a.getPrice());
-                    conteoArticulosEnProy2.get(i).setPrice(aa.getPrice() * conteoArticulosEnProy2.get(i).getQuantity());
+                    conteoArticulosEnProy.get(i).setPrice(aa.getPrice() * conteoArticulosEnProy.get(i).getQuantity());
                 }
             }
         }
@@ -284,20 +295,21 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
             }
         }
         try {
-            conteoArticulosEnProy2.clear();
+            conteoArticulosEnProy.clear();
         } catch (Exception e) {
         }
         for (Articulo a : StartWizard.getArticles()) {
-            conteoArticulosEnProy2.add(new PatronLine(a, 0));
+            conteoArticulosEnProy.add(new PatronLine(a, 0));
         }
         for (PatronLine pl : patlinList) {
-            for (PatronLine patlin : conteoArticulosEnProy2) {
+            for (PatronLine patlin : conteoArticulosEnProy) {
                 if (pl.getArticle().getNumber() == patlin.getArticle().getNumber()) {
                     patlin.addToQuantity(pl.getQuantity());
                 }
             }
         }
-        //articuloModel.doRefresh();
+        articuloModel.fireTableDataChanged();
+        updateArticulosTotal();
     }
 
     public void updateSiteMaterialTable() {
@@ -312,15 +324,15 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
             siteTempTotal += siteMat.getTotalPrice();
         }
         smm.fireTableDataChanged();
-        //updateSiteTotal();
+        updateSiteTotal();
     }
 
     public static ArrayList<SiteMaterial> getMaterialesSite() {
         return materialesSite;
     }
 
-    public static void updateArticulosTotal(double total) {
-        jFormattedTextField6.setValue(total);
+    public static void updateArticulosTotal() {
+        jFormattedTextField6.setValue(articuloModel.getTotal());
     }
 
     public static SiteMaterialModel getSmm() {
@@ -475,20 +487,29 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
         dateCreated = text;
     }
 
+    public static ArrayList<PatronLine> getConteo() {
+        return conteoArticulosEnProy;
+    }
+
     public static ArrayList<Poste> getPostes() {
         return postes;
     }
 
-    public static void updateSiteTotal(double total) {
-        jFormattedTextField7.setValue(total);
+    public static void updateSiteTotal() {
+        double d = smm.getTotal();
+        jFormattedTextField7.setValue(d);
         double d2 = ((Number) jFormattedTextField4.getValue()).doubleValue();
-        double grandTotal = total + total * d2;
-        jFormattedTextField3.setValue(grandTotal);
+        double total = d + d * d2;
+        jFormattedTextField3.setValue(total);
     }
 
-    public static void updatePosteTotal(double posteOnlyTotal, double posteGrandTotal) {
-        jFormattedTextField5.setValue(posteGrandTotal);
-        jFormattedTextField8.setValue(posteOnlyTotal);
+    public static void updatePosteTotal() {
+        jFormattedTextField5.setValue(ptm.getTotal());
+        jFormattedTextField8.setValue(ptm.getPosteOnlyTotal());
+    }
+
+    public static PatronLine[] getPatronLineasBase() {
+        return patronLineasBase;
     }
 
     public JPanel getMaterialsPanel() {
@@ -638,16 +659,6 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
         jTable3.setDefaultRenderer(Object.class, new ColorRenderer());
         ToolTipManager.sharedInstance().unregisterComponent(jTable3);
         ToolTipManager.sharedInstance().unregisterComponent(jTable3.getTableHeader());
-        jTable3.getModel().addTableModelListener(new TableModelListener() {
-
-            public void tableChanged(TableModelEvent e) {
-                double total1 = 0;
-                for(int i=e.getFirstRow(); i<jTable3.getRowCount(); i++){
-                    total1 += (Double)jTable3.getValueAt(i, 3);
-                }
-                jFormattedTextField6.setValue(total1);
-            }
-        });
     }
 
     private void initializePosteTable() {
@@ -688,42 +699,6 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
                 }
             }
         });
-
-        jTable2.getModel().addTableModelListener(new TableModelListener() {
-
-            public void tableChanged(TableModelEvent e) {
-                double total1 = 0;
-                double total2 = 0;
-                for(int i=e.getFirstRow(); i<jTable2.getRowCount(); i++){
-                    total1 += (Double)jTable2.getValueAt(i, 3);
-                    total2 += (Double)jTable2.getValueAt(i, 4);
-                }                 
-                jFormattedTextField8.setValue(total1);
-                jFormattedTextField5.setValue(total2);
-                /*
-                if (e.getType() == TableModelEvent.UPDATE) {
-                    int column = e.getColumn();
-                    if (column != TableModelEvent.ALL_COLUMNS) {
-                        int firstRow = e.getFirstRow();
-                        if (firstRow != TableModelEvent.HEADER_ROW) {
-                            if (jTable2.getColumnName(column).equals("qty")) {
-                                for (int i = firstRow; i <= e.getLastRow(); i++) {
-                                    Object qty = jTable2.getValueAt(i, column);
-                                //Now update the price based on value.
-                                }
-                            }
-                        } else {
-                            //columns got moved around or renamed or something else
-                        }
-                    } else {
-                        //Entire table got changed...
-                    }
-                } else {
-                    //rows or columns were added or deleted, usually not a user action.
-                }
-                 */
-            }
-        });
     }
 
     private void initializeTable() {
@@ -751,12 +726,28 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
      * poste de la lista.
      * */
     private void removeArticulos(Poste p) {
-        for (Patron patron : p.getPatrones()) {
-            for (PatronLine pl : patron.getLines()) {
-                conteoArticulosEnProy2.removePatronLine(pl);
+        ArrayList<PatronLine> lineasViejas = new ArrayList<PatronLine>();
+        ArrayList<Patron> patronesOriginales = new ArrayList<Patron>();
+        for (Patron pat : p.getPatrones()) {
+            patronesOriginales.add(pat);
+        }
+        for (Patron pa : patronesOriginales) {
+            for (PatronLine pl : pa.getLines()) {
+                lineasViejas.add(pl);
             }
         }
-        articuloModel.fireTableDataChanged();
+        for (PatronLine pali : lineasViejas) {
+            for (PatronLine patlin : conteoArticulosEnProy) {
+                if (patlin.compareTo(pali) == 0) {
+                    patlin.subtractFromQuantity(pali.getQuantity());
+                }
+            }
+        }
+        refreshArticuloTable();
+    }
+
+    private static void refreshArticuloTable() {
+        articuloModel.doRefresh();
     }
 
     private void setModifiedDate() {
@@ -789,14 +780,8 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
             out.writeObject(comments);
             out.writeObject(materialesSite);
             out.writeObject(postes);
-            //El conteo va a ser diferente//////////////////////////////////
-            //**************************************
-            //***************************************
-            //************************************************************
-            //************************************************************
-            //************************************************************
-            //************************************************************
-            out.writeObject(conteoArticulosEnProy2);
+            out.writeObject(conteoArticulosEnProy);
+            out.writeObject(patronLineasBase);
             out.close();
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
@@ -832,8 +817,8 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
         }
         return -1;
     }
-
-    public static ArrayList<PatronSelect3> getOpenPostes() {
+    
+    public static ArrayList<PatronSelect3> getOpenPostes(){
         return openPostes;
     }
 
@@ -1246,11 +1231,6 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jTable3.addVetoableChangeListener(new java.beans.VetoableChangeListener() {
-            public void vetoableChange(java.beans.PropertyChangeEvent evt)throws java.beans.PropertyVetoException {
-                jTable3VetoableChange(evt);
-            }
-        });
         jScrollPane4.setViewportView(jTable3);
 
         jLabel11.setFont(new java.awt.Font("Tahoma", 1, 12));
@@ -1306,7 +1286,7 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
             }
         });
 
-        jButton4.setText("Próxima>>");
+        jButton4.setText("Próximo>>");
         jButton4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton4ActionPerformed(evt);
@@ -1658,8 +1638,6 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         } else {
             saveFile(lastSavedFilename + ".proy");
         }
-        this.setVisible(false);
-        this.dispose();
     } else {
         StartWizard.chooser.setFileFilter(StartWizard.getFilter());
         int returnVal = StartWizard.chooser.showSaveDialog(this);
@@ -1672,10 +1650,10 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                 saveFile(filename + ".proy");
             }
             lastSavedFilename = filename;
-            this.setVisible(false);
-            this.dispose();
         }
     }
+    this.setVisible(false);
+    this.dispose();
 }//GEN-LAST:event_jButton1ActionPerformed
 
 private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -1725,9 +1703,9 @@ private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                         null, options, options[0]);
                 if (option == 0) {
                     int modelRow = jTable2.convertRowIndexToModel(viewRow);
-                    Poste p = postes.remove(modelRow);
-                    ptm.fireTableDataChanged();
+                    Poste p = ((PosteTableModel) ptm).removePosteAt(modelRow);
                     removeArticulos(p);
+                    postes.remove(p);
                     notChanged = false;
                 }
             }
@@ -1957,10 +1935,6 @@ private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
     timer.start();
     this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 }//GEN-LAST:event_jMenuItem1ActionPerformed
-
-private void jTable3VetoableChange(java.beans.PropertyChangeEvent evt)throws java.beans.PropertyVetoException {//GEN-FIRST:event_jTable3VetoableChange
-    System.out.println("Change");
-}//GEN-LAST:event_jTable3VetoableChange
 
     /**
      * @param args the command line arguments

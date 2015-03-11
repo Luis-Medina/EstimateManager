@@ -79,9 +79,4 @@ public class PatronLine implements Comparable<PatronLine>, Serializable {
             return 1;
         return -1;
     }
-
-    @Override
-    public String toString(){
-        return article.getDescription() + " , " + quantity;
-    }
 }

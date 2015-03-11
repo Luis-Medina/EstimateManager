@@ -29,8 +29,7 @@ public class PosteTableModel extends AbstractTableModel {
 
     private ArrayList<Poste> datalist = new ArrayList<Poste>();
     private String[] columns = {"Nombre", "Clase", "Alto (pies)", "Precio del poste ($)", "Precio con materiales ($)"};
-    private double posteOnlyTotal = 0;
-    private double posteGrandTotal = 0;
+    private double totalCost = 0;
     
     public int getRowCount() {
         return datalist.size();
@@ -48,7 +47,7 @@ public class PosteTableModel extends AbstractTableModel {
     }
 
     public PosteTableModel(ArrayList<Poste> l) {
-        datalist = l;
+        datalist.addAll(l);
     }
 
     public Object getValueAt(int row, int col) {
@@ -68,26 +67,29 @@ public class PosteTableModel extends AbstractTableModel {
                 return null;
         }
     }
-
     
+    
+
     public void addPoste(Poste p) {
         datalist.add(p);
         fireTableDataChanged();
+        totalCost += p.getTotalPrice();
+        SiteAdmin.updatePosteTotal();
     }
     
-
-    
     public void setPoste(Poste p, int index){
-        datalist.set(index, p); 
+        datalist.set(index, p);
+        totalCost = 0;
+        for(Poste pos : datalist)
+            totalCost += pos.getTotalPrice(); 
+        SiteAdmin.updatePosteTotal();
         fireTableDataChanged();
     }
 
-    /*
     public void addPosteList(ArrayList<Poste> l) {
         datalist.addAll(l);
         fireTableDataChanged();
     }
-     */
 
     public Poste getPosteAt(int row) {
         return (Poste) datalist.get(row);
@@ -95,11 +97,12 @@ public class PosteTableModel extends AbstractTableModel {
 
     public Poste removePosteAt(int row) {
         Poste p = (Poste) datalist.remove(row);
+        totalCost -= p.getTotalPrice();
         fireTableDataChanged();
+        SiteAdmin.updatePosteTotal();
         return p;
     }
 
-    @Override
     public Class getColumnClass(int col) {
         switch (col) {
             case 0:

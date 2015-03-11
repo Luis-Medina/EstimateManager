@@ -10,7 +10,6 @@
 package omarproject;
 
 import java.io.File;
-import java.text.NumberFormat;
 import javax.swing.ImageIcon;
 
 /**
@@ -45,12 +44,6 @@ public class Utils {
             System.err.println("Couldn't find file: " + path);
             return null;
         }
-    }
-
-    public static String returnDollarValue(double value){
-        Number numberValue = (Number) value;
-        NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        return formatter.format(numberValue.doubleValue());
     }
     
 }
