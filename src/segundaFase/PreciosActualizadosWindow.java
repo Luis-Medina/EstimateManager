@@ -15,6 +15,7 @@ public class PreciosActualizadosWindow extends javax.swing.JFrame {
     /** Creates new form PreciosActualizadosWindow */
     public PreciosActualizadosWindow() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /** This method is called from within the constructor to

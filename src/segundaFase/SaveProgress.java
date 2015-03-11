@@ -18,7 +18,8 @@ public class SaveProgress extends javax.swing.JFrame {
     /** Creates new form SaveProgress */
     public SaveProgress() {
         initComponents();
-    }
+        setLocationRelativeTo(null);
+    }  
 
     public JProgressBar getBar() {
         return jProgressBar1;

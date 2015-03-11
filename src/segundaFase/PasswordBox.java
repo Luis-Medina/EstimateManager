@@ -24,6 +24,7 @@ public class PasswordBox extends javax.swing.JFrame {
     /** Creates new form PasswordBox */
     public PasswordBox() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     public PasswordBox(String s, Container c) {
@@ -49,6 +50,7 @@ public class PasswordBox extends javax.swing.JFrame {
         this.requestFocus();
         initComponents();
         parent = s;
+        setLocationRelativeTo(null);
     }
 
     private boolean passMatch() {

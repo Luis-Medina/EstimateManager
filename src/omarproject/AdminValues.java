@@ -51,6 +51,7 @@ public class AdminValues extends javax.swing.JFrame {
         } catch (Exception e) {
         }
         jPanel1.requestFocusInWindow();
+        setLocationRelativeTo(null);
     }
 
     public ArrayList<TextValuesComp> mySerialize() {

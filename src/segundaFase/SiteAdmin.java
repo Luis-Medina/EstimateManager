@@ -132,6 +132,7 @@ public class SiteAdmin extends javax.swing.JFrame implements PropertyChangeListe
         savedBefore = false;
         openPostes = new ArrayList<PatronSelect3>();
         setRadios();
+        setLocationRelativeTo(null);
     }
 
     public SiteAdmin(ArrayList<ArrayList<TextValuesComp>> temp, String name, String datec, String datem, int diff, String loc, String com, ArrayList<SiteMaterial> sm, ArrayList<Poste> p, ArrayList<PatronLine> pat, PatronLine[] patlin) {

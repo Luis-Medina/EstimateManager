@@ -65,6 +65,7 @@ public class DatabaseEdit extends javax.swing.JFrame {
         ToolTipManager.sharedInstance().unregisterComponent(jTable3.getTableHeader());
         ToolTipManager.sharedInstance().unregisterComponent(jTable4.getTableHeader());
         ToolTipManager.sharedInstance().unregisterComponent(jTable5.getTableHeader());
+        setLocationRelativeTo(null);
     }
 
     public static JTable getTable1() {

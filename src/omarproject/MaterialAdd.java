@@ -19,6 +19,7 @@ public class MaterialAdd extends javax.swing.JFrame {
     /** Creates new form MaterialAdd */
     public MaterialAdd() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /** This method is called from within the constructor to

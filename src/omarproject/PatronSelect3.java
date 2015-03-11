@@ -55,6 +55,7 @@ public class PatronSelect3 extends javax.swing.JFrame {
 
     public PatronSelect3() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /** Creates new form PatronSelect */
@@ -83,6 +84,7 @@ public class PatronSelect3 extends javax.swing.JFrame {
         if (!newOne) {
             restoreOld();
         }
+        setLocationRelativeTo(null);
     }
     
     public String getPosteName(){

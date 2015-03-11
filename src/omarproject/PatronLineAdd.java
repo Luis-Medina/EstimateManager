@@ -21,12 +21,14 @@ public class PatronLineAdd extends javax.swing.JFrame {
     /** Creates new form PatronLineAdd */
     public PatronLineAdd() {
         initComponents();
+        setLocationRelativeTo(null);
     }
     
     public PatronLineAdd(ArrayList<PatronLine> pl) {
         padm = new PatronLineAddModel(StartWizard.articulos, pl);
         initComponents();
         initializeTable();
+        setLocationRelativeTo(null);
     }
     
     public static PatronLineAddModel getModel(){

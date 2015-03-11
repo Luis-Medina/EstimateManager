@@ -17,6 +17,7 @@ public class PosteAdd extends javax.swing.JFrame {
     /** Creates new form PosteAdd */
     public PosteAdd() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /** This method is called from within the constructor to

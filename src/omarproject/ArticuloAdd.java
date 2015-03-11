@@ -21,11 +21,13 @@ public class ArticuloAdd extends javax.swing.JFrame {
     /** Creates new form ArticuloAdd */
     public ArticuloAdd() {
         initComponents();
+        setLocationRelativeTo(null);
     }
     
     public ArticuloAdd(String name) {
         initComponents();
         parentName = name;
+        setLocationRelativeTo(null);
     }
 
     /** This method is called from within the constructor to

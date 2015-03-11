@@ -27,6 +27,7 @@ public class PatronAdd extends javax.swing.JFrame {
         padm = new PatronAddDetailModel(StartWizard.articulos);
         initializeTable();
         toEdit = false;
+        setLocationRelativeTo(null);
     }
 
     public PatronAdd(Patron p) {
@@ -36,6 +37,7 @@ public class PatronAdd extends javax.swing.JFrame {
         jTextField1.setText(patron.getNumber());
         padm.setQuantities(patron.getLines());
         toEdit = true;
+        setLocationRelativeTo(null);
     }
     
     public static PatronAddDetailModel getPatronModel(){
